@@ -33,18 +33,17 @@ public class DafnyServerFrame {
         this.dafnyOutputPane = dafnyOutputPane;
     }
 
-    public static void show(final DafnyServer server, final Arguments arguments) throws HeadlessException, InvocationTargetException, InterruptedException {
+    public static void show(final DafnyServer server, final Arguments arguments, final VerificationModel verificationModel) throws HeadlessException, InvocationTargetException, InterruptedException {
         SwingUtilities.invokeAndWait(() -> {
-            constructAndShowUi(server, arguments);
+            constructAndShowUi(server, arguments, verificationModel);
         });
     }
 
-    static void constructAndShowUi(final DafnyServer server, final Arguments arguments) {
+    static void constructAndShowUi(final DafnyServer server, final Arguments arguments, final VerificationModel verificationModel) {
         final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         final JFrame jFrame = new JFrame("Dafny");
         jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         jFrame.setLayout(new BorderLayout());
-
 
         final JCheckBox traceTimesBox = new JCheckBox();
         traceTimesBox.setSelected(true);

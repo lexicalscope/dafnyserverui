@@ -1,6 +1,6 @@
 package com.lexicalscope.dafny.dafnyservergui;
 
-public interface PreprocessedServerOutputListener {
+public interface ServerEventListener {
     default void log(final String filename, final int lineNumber, final int columnNumber, final String level, final String message) {}
     default void time(final TimingBookend bookend, final TimingEvent event, final long hunderedNanoseconds) {}
     default void verifying(final VerificationType verificationType, final String module, final String procedure) {}

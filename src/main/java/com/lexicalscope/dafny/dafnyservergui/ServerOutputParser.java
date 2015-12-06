@@ -9,11 +9,11 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ServerOutputPreParser implements RawServerOutputListener {
-    private final List<PreprocessedServerOutputListener> listeners = new ArrayList<>();
+public class ServerOutputParser implements ServerOutputListener {
+    private final List<ServerEventListener> listeners = new ArrayList<>();
     private final String filename;
 
-    public ServerOutputPreParser(final String filename) {
+    public ServerOutputParser(final String filename) {
         this.filename = filename;
     }
 
@@ -39,12 +39,12 @@ public class ServerOutputPreParser implements RawServerOutputListener {
         }
     }
 
-    private Consumer<PreprocessedServerOutputListener> parseCachedLine(final String line) {
+    private Consumer<ServerEventListener> parseCachedLine(final String line) {
         return parseProcedureIdentity(line, (l,id) -> l.cached(id.verificationType, id.module, id.procedure));
     }
 
     private final Pattern verifiedLinePattern = Pattern.compile("\\[(\\d+) proof obligations\\]");
-    private Consumer<PreprocessedServerOutputListener> parseVerifiedLine(final String line) {
+    private Consumer<ServerEventListener> parseVerifiedLine(final String line) {
         final Matcher matcher = verifiedLinePattern.matcher(line);
         if(matcher.matches()) {
             final int proofObligations = parseInt(matcher.group(1));
@@ -53,13 +53,13 @@ public class ServerOutputPreParser implements RawServerOutputListener {
         return l -> {};
     }
 
-    private Consumer<PreprocessedServerOutputListener> parseVerifyingLine(final String line) {
+    private Consumer<ServerEventListener> parseVerifyingLine(final String line) {
         return parseProcedureIdentity(line, (l,id) -> l.verifying(id.verificationType, id.module, id.procedure));
     }
 
     private final class ProcedureId {VerificationType verificationType; String module; String procedure;}
     private final Pattern verifyingLinePattern = Pattern.compile("(.+?)\\$\\$_module.__([^\\.]+).(.+?) ?\\.{3}");
-    private Consumer<PreprocessedServerOutputListener> parseProcedureIdentity(final String line, final BiConsumer<PreprocessedServerOutputListener, ProcedureId> listener) {
+    private Consumer<ServerEventListener> parseProcedureIdentity(final String line, final BiConsumer<ServerEventListener, ProcedureId> listener) {
         final ProcedureId procedureId = new ProcedureId();
 
         final Matcher matcher = verifyingLinePattern.matcher(line);
@@ -86,7 +86,7 @@ public class ServerOutputPreParser implements RawServerOutputListener {
      */
 
     private final Pattern timeLinePattern = Pattern.compile("(\\w+) (.*?)   \\[(\\d+)\\.(\\d{7})? s\\]");
-    private Consumer<PreprocessedServerOutputListener> parseTimeLine(final String line) {
+    private Consumer<ServerEventListener> parseTimeLine(final String line) {
         final Matcher matcher = timeLinePattern.matcher(line);
         if(matcher.matches()) {
             final String bookendString = matcher.group(1);
@@ -117,7 +117,7 @@ public class ServerOutputPreParser implements RawServerOutputListener {
     }
 
     private final Pattern logLinePattern = Pattern.compile("\\((\\d+),(\\d+)\\): ([^:]+): (.*)");
-    private Consumer<PreprocessedServerOutputListener> parseLogLine(final String line) {
+    private Consumer<ServerEventListener> parseLogLine(final String line) {
         final Matcher matcher = logLinePattern.matcher(line.substring(filename.length()));
         if(matcher.matches()) {
             final String lineNumber = matcher.group(1);
@@ -129,11 +129,11 @@ public class ServerOutputPreParser implements RawServerOutputListener {
         return l -> {};
     }
 
-    private void fire(final Consumer<PreprocessedServerOutputListener> event) {
+    private void fire(final Consumer<ServerEventListener> event) {
         listeners.forEach(event);
     }
 
-    public void add(final PreprocessedServerOutputListener preprocessedServerOutputListener) {
+    public void add(final ServerEventListener preprocessedServerOutputListener) {
         listeners.add(preprocessedServerOutputListener);
     }
 }

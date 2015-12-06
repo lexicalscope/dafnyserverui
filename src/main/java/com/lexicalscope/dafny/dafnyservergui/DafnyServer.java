@@ -20,7 +20,7 @@ public class DafnyServer implements Runnable {
 
     private final OutputStream outputStream;
     private BufferedReader reader;
-    private final List<RawServerOutputListener> outputHandlers = new ArrayList<>();
+    private final List<ServerOutputListener> outputHandlers = new ArrayList<>();
 
     public DafnyServer(final InputStream inputStream, final OutputStream outputStream) {
         this.outputStream = outputStream;
@@ -31,7 +31,7 @@ public class DafnyServer implements Runnable {
         }
     }
 
-    public void addOutputListener(final RawServerOutputListener outputListener)
+    public void addOutputListener(final ServerOutputListener outputListener)
     {
         synchronized (listenerLock) {
             outputHandlers.add(outputListener);
@@ -39,7 +39,7 @@ public class DafnyServer implements Runnable {
     }
 
     private void broadcast(final String line) {
-        List<RawServerOutputListener> copy;
+        List<ServerOutputListener> copy;
         synchronized (listenerLock) {
             copy = new ArrayList<>(outputHandlers);
         }

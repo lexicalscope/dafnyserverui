@@ -94,8 +94,8 @@ public class TestServerOutputPreParser {
 
     @Rule public final JUnitRuleMockery context = new JUnitRuleMockery();
 
-    private final ServerOutputPreParser parser = new ServerOutputPreParser(exampleFilename);
-    @Mock PreprocessedServerOutputListener listener;
+    private final ServerOutputParser parser = new ServerOutputParser(exampleFilename);
+    @Mock ServerEventListener listener;
 
     @Before public void addListener() {
         parser.add(listener);
@@ -185,7 +185,7 @@ public class TestServerOutputPreParser {
         context.checking(new Expectations(){{
             ignoring(listener);
         }});
-        parser.add(new PreprocessedServerOutputListener() {
+        parser.add(new ServerEventListener() {
             @Override public void unrecognised(final String line) {
                 fail(line);
             }

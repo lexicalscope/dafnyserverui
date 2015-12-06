@@ -7,12 +7,10 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Consumer;
 
-import org.antlr.v4.runtime.RecognitionException;
+import javax.swing.SwingUtilities;
 
-import com.lexicalscope.dafny.dafnyserver.DafnyServerBaseVisitor;
-import com.lexicalscope.dafny.dafnyserver.DafnyServerParser.VerificationArtifactContext;
-import com.lexicalscope.dafny.dafnyserver.DafnyServerParser.VerificationCompletedContext;
 import com.lexicalscope.jewel.cli.CliFactory;
 
 public class DafnyInteractive
@@ -41,48 +39,29 @@ public class DafnyInteractive
 
         final LinkedBlockingQueue<String> serverOutputBuffer = new LinkedBlockingQueue<String>();
 
+        final VerificationModel verificationModel = new VerificationModel();
         final DafnyServer server = new DafnyServer(process.getInputStream(), process.getOutputStream());
         //server.addOutputListener(logToConsole());
         server.addOutputListener(logToQueue(serverOutputBuffer));
 
-        final AntlrServerOutputParser parser = AntlrServerOutputParser.createServerOutputParser(serverOutputBuffer);
-        parser.addParsingListener(logParsingToConsole());
+        final BufferedServerOutputParser parser = BufferedServerOutputParser.createServerOutputParser(serverOutputBuffer, arguments.file());
+        parser.addEventListener(new ServerEventBroadcaster(forwardServerEventsOnEdt(verificationModel)));
 
-        DafnyServerFrame.show(server, arguments);
+        DafnyServerFrame.show(server, arguments, verificationModel);
 
         threadPool.submit(parser);
         threadPool.submit(server);
     }
 
-    private static ParsingResultListener logParsingToConsole() {
-        return new ParsingResultListener() {
-            @Override public void verificationArtifact(final VerificationArtifactContext verificationArtifact) {
-                new DafnyServerBaseVisitor<Void>(){
-                    @Override
-                    public Void visitVerificationCompleted(final VerificationCompletedContext ctx) {
-                        System.out.println("verification completed");
-                        return null;
-                    };
-
-                    @Override
-                    public Void visitLogLine(final com.lexicalscope.dafny.dafnyserver.DafnyServerParser.LogLineContext ctx) {
-                        System.out.println("log line");
-                        return null;
-                    };
-                }.visit(verificationArtifact);
-            }
-
-            @Override public void syntaxError(final RecognitionException e) {
-                System.out.println(e);
-            }
-        };
+    private static Consumer<Consumer<ServerEventListener>> forwardServerEventsOnEdt(final ServerEventListener l) {
+        return forwarder -> SwingUtilities.invokeLater(() -> forwarder.accept(l));
     }
 
-    private static RawServerOutputListener logToQueue(final BlockingQueue<String> queue) {
+    private static ServerOutputListener logToQueue(final BlockingQueue<String> queue) {
         return line -> queue.add(line);
     }
 
-    static RawServerOutputListener logToConsole() {
+    static ServerOutputListener logToConsole() {
         return message -> {System.out.println(message);};
     }
 }
