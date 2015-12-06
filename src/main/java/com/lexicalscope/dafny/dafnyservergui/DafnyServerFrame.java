@@ -45,8 +45,10 @@ public class DafnyServerFrame {
         jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         jFrame.setLayout(new BorderLayout());
 
+
         final JCheckBox traceTimesBox = new JCheckBox();
         traceTimesBox.setSelected(true);
+        traceTimesBox.setText("traceTimes");
         final JTextField fileField = new JTextField(40);
         fileField.setText(arguments.file());
 

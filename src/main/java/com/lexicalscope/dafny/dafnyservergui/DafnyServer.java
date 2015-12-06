@@ -2,41 +2,36 @@ package com.lexicalscope.dafny.dafnyservergui;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.function.Consumer;
 
 import com.google.common.base.Splitter;
 import com.google.gson.Gson;
 
-public class DafnyServer implements AutoCloseable {
+public class DafnyServer implements Runnable {
     private final Object inputLock = new Object();
     private final Object outputLock = new Object();
     private final Object listenerLock = new Object();
 
-    private final Process process;
     private final OutputStream outputStream;
-    private final ExecutorService executor;
     private BufferedReader reader;
-    private final List<Consumer<String>> outputHandlers = new ArrayList();
+    private final List<RawServerOutputListener> outputHandlers = new ArrayList<>();
 
-    public DafnyServer(final ExecutorService executor, final Process process) {
-        this.executor = executor;
-        this.process = process;
-        this.outputStream = process.getOutputStream();
+    public DafnyServer(final InputStream inputStream, final OutputStream outputStream) {
+        this.outputStream = outputStream;
         try {
-            this.reader = new BufferedReader(new InputStreamReader(process.getInputStream(), "US-ASCII"));
+            this.reader = new BufferedReader(new InputStreamReader(inputStream, "US-ASCII"));
         } catch (final UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void addOutputListener(final Consumer<String> outputListener)
+    public void addOutputListener(final RawServerOutputListener outputListener)
     {
         synchronized (listenerLock) {
             outputHandlers.add(outputListener);
@@ -44,11 +39,11 @@ public class DafnyServer implements AutoCloseable {
     }
 
     private void broadcast(final String line) {
-        List<Consumer<String>> copy;
+        List<RawServerOutputListener> copy;
         synchronized (listenerLock) {
             copy = new ArrayList<>(outputHandlers);
         }
-        copy.forEach(listener -> listener.accept(line));
+        copy.forEach(listener -> listener.outputLine(line));
     }
 
     public void sendMessage(final MessageToServer message)
@@ -66,34 +61,22 @@ public class DafnyServer implements AutoCloseable {
         }
     }
 
-    public void pipeOutput()
+    @Override
+    public void run()
     {
-        executor.submit(() -> {
-            try {
-                while(!Thread.currentThread().isInterrupted())
-                {
-                    String line;
-                    synchronized (inputLock) {
-                        line = reader.readLine();
-                    }
-                    if(line != null) {
-                        broadcast(line);
-                    }
+        try {
+            while(!Thread.currentThread().isInterrupted())
+            {
+                String line;
+                synchronized (inputLock) {
+                    line = reader.readLine();
                 }
-            } catch (final Exception e) {
-                throw new RuntimeException(e);
+                if(line != null) {
+                    broadcast(line);
+                }
             }
-        });
-    }
-
-    @Override public void close() {
-        try
-        {
-            executor.shutdownNow();
-        }
-        finally
-        {
-            process.destroy();
+        } catch (final Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
