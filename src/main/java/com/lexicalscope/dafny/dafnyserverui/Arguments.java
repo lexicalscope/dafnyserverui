@@ -9,4 +9,7 @@ public interface Arguments
 
   @Option(description="the file you wish to verify")
   String file();
+
+  @Option(description="time limit for verification of a procedure in seconds", defaultValue="30")
+  int timeLimit();
 }

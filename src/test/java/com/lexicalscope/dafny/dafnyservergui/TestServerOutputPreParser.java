@@ -131,6 +131,27 @@ public class TestServerOutputPreParser {
         parser.outputLine(">>> Starting typechecking   [0.6251319 s]");
     }
 
+    @Test public void startingImplementationVerficationTime() {
+        context.checking(new Expectations(){{
+            oneOf(listener).time(
+                    TimingBookend.Starting,
+                    TimingEvent.ImplementationVerification,
+                    39216058);
+        }});
+
+        parser.outputLine(">>> Starting implementation verification   [3.9216058 s]");
+    }
+
+    @Test public void finishedImplementationVerficationTime() {
+        context.checking(new Expectations(){{
+            oneOf(listener).time(
+                    TimingBookend.Finished,
+                    TimingEvent.ImplementationVerification,
+                    41737721);
+        }});
+
+        parser.outputLine(">>> Finished implementation verification   [4.1737721 s]");
+    }
 
     @Test public void parseVerficationStart() {
         context.checking(new Expectations(){{
@@ -170,6 +191,30 @@ public class TestServerOutputPreParser {
 
         parser.outputLine("  [35 proof obligations]  verified");
     }
+
+    @Test public void verfiedWithOneObligationIsSingular() {
+        context.checking(new Expectations(){{
+            oneOf(listener).verifed(1);
+        }});
+
+        parser.outputLine("  [1 proof obligation]  verified");
+    }
+
+    @Test public void parseVerfiedWithZeroObligations() {
+        context.checking(new Expectations(){{
+            oneOf(listener).verifed(0);
+        }});
+
+        parser.outputLine("  [0 proof obligations]  verified");
+    }
+
+    @Test public void parseFailed() {
+        context.checking(new Expectations(){{
+            oneOf(listener).failed(36);
+        }});
+        parser.outputLine("  [36 proof obligations]  error");
+    }
+
 
     @Test public void parseBlankLine() {
         context.checking(new Expectations(){{

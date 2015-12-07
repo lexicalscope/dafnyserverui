@@ -29,6 +29,10 @@ public final class ServerEventBroadcaster implements ServerEventListener {
         broadcaster.accept(l -> l.verifed(proofObligations));
     }
 
+    @Override public void failed(final int proofObligations) {
+        broadcaster.accept(l -> l.failed(proofObligations));
+    }
+
     @Override public void verficationCompleted() {
         broadcaster.accept(l -> l.verficationCompleted());
     }

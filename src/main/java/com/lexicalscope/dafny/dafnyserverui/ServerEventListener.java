@@ -6,6 +6,7 @@ public interface ServerEventListener {
     default void verifying(final VerificationType verificationType, final String module, final String procedure) {}
     default void cached(final VerificationType verificationType, final String module, final String procedure) {}
     default void verifed(final int proofObligations) {}
+    default void failed(final int proofObligations) {}
     default void verficationCompleted() {}
     default void unrecognised(final String line) {}
     default void blankLine() {}

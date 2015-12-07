@@ -28,6 +28,8 @@ public class ServerOutputParser implements ServerOutputListener {
             fire(parseCachedLine(line.substring("Retrieving cached verification result for implementation ".length())));
         } else if (line.startsWith("  [") && line.endsWith("  verified")) {
             fire(parseVerifiedLine(line.substring("  ".length(), line.length() - "  verified".length())));
+        } else if (line.startsWith("  [") && line.endsWith("  error")) {
+            fire(parseFailedLine(line.substring("  ".length(), line.length() - "  error".length())));
         } else if (line.equals("Verification completed successfully!")) {
             fire(l -> l.verficationCompleted());
         } else if (line.equals("[SUCCESS] [[DAFNY-SERVER: EOM]]")) {
@@ -39,12 +41,20 @@ public class ServerOutputParser implements ServerOutputListener {
         }
     }
 
-    private final Pattern verifiedLinePattern = Pattern.compile("\\[(\\d+) proof obligations\\]");
     private Consumer<ServerEventListener> parseVerifiedLine(final String line) {
+        return parseVerifiedLine(line, (l, proofObligations) -> l.verifed(proofObligations));
+    }
+
+    private Consumer<ServerEventListener> parseFailedLine(final String line) {
+        return parseVerifiedLine(line, (l, proofObligations) -> l.failed(proofObligations));
+    }
+
+    private final Pattern verifiedLinePattern = Pattern.compile("\\[(\\d+) proof obligations?\\]");
+    private Consumer<ServerEventListener> parseVerifiedLine(final String line, final BiConsumer<ServerEventListener, Integer> listener) {
         final Matcher matcher = verifiedLinePattern.matcher(line);
         if(matcher.matches()) {
             final int proofObligations = parseInt(matcher.group(1));
-            return l -> l.verifed(proofObligations);
+            return l -> listener.accept(l, proofObligations);
         }
         return l -> {};
     }

@@ -16,10 +16,10 @@ import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
@@ -54,6 +54,11 @@ public class DafnyServerFrame {
         final JCheckBox traceTimesBox = new JCheckBox();
         traceTimesBox.setSelected(true);
         traceTimesBox.setText("traceTimes");
+        final JTextField timeoutField = new JTextField(2);
+        timeoutField.setText("" + arguments.timeLimit());
+        final JLabel timeoutLabel = new JLabel("timeout");
+        timeoutLabel.setLabelFor(timeoutField);
+
         final JTextField fileField = new JTextField(40);
         fileField.setText(arguments.file());
 
@@ -71,6 +76,8 @@ public class DafnyServerFrame {
                 if(traceTimesBox.isSelected()) {
                     args.add("/traceTimes");
                 }
+                args.add("/timeLimit:" + timeoutField.getText());
+
                 messageToServer.args = args.toArray(new String[args.size()]);
                 server.sendMessage(messageToServer);
             }
@@ -79,11 +86,13 @@ public class DafnyServerFrame {
         final JPanel settingsPane = new JPanel(new GridBagLayout());
         settingsPane.add(fileField);
         settingsPane.add(traceTimesBox);
+        settingsPane.add(timeoutField);
+        settingsPane.add(timeoutLabel);
 
         final JTextPane dafnyOutputPane = new JTextPane();
 
         final JTabbedPane tabs = new JTabbedPane();
-        tabs.add("verification", new JScrollPane(new JTable(verificationModel)));
+        tabs.add("verification", new JScrollPane(new VerificationTable(verificationModel)));
         tabs.add("output", new JScrollPane(dafnyOutputPane));
 
         jFrame.getContentPane().add(buttonPane, BorderLayout.NORTH);
