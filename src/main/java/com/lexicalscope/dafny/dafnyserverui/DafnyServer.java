@@ -1,4 +1,4 @@
-package com.lexicalscope.dafny.dafnyservergui;
+package com.lexicalscope.dafny.dafnyserverui;
 
 import java.io.BufferedReader;
 import java.io.IOException;

@@ -1,11 +1,11 @@
-package com.lexicalscope.dafny.dafnyservergui;
+package com.lexicalscope.dafny.dafnyserverui;
 
 import java.util.function.Consumer;
 
-final class ServerEventBroadcaster implements ServerEventListener {
+public final class ServerEventBroadcaster implements ServerEventListener {
     private final Consumer<Consumer<ServerEventListener>> broadcaster;
 
-    public ServerEventBroadcaster(final Consumer<Consumer<ServerEventListener>> broadcaster) {
+    public ServerEventBroadcaster(final String name, final Consumer<Consumer<ServerEventListener>> broadcaster) {
         this.broadcaster = broadcaster;
     }
 
@@ -18,7 +18,7 @@ final class ServerEventBroadcaster implements ServerEventListener {
     }
 
     @Override public void verifying(final VerificationType verificationType, final String module, final String procedure) {
-        broadcaster.accept(l -> verifying(verificationType, module, procedure));
+        broadcaster.accept(l -> l.verifying(verificationType, module, procedure));
     }
 
     @Override public void cached(final VerificationType verificationType, final String module, final String procedure) {

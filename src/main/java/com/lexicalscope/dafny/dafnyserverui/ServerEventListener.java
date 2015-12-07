@@ -1,4 +1,4 @@
-package com.lexicalscope.dafny.dafnyservergui;
+package com.lexicalscope.dafny.dafnyserverui;
 
 public interface ServerEventListener {
     default void log(final String filename, final int lineNumber, final int columnNumber, final String level, final String message) {}

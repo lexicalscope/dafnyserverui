@@ -1,4 +1,4 @@
-package com.lexicalscope.dafny.dafnyservergui;
+package com.lexicalscope.dafny.dafnyservergui.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -18,6 +18,8 @@ import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
@@ -25,6 +27,10 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
+
+import com.lexicalscope.dafny.dafnyserverui.Arguments;
+import com.lexicalscope.dafny.dafnyserverui.DafnyServer;
+import com.lexicalscope.dafny.dafnyserverui.MessageToServer;
 
 public class DafnyServerFrame {
     private final JTextPane dafnyOutputPane;
@@ -75,8 +81,13 @@ public class DafnyServerFrame {
         settingsPane.add(traceTimesBox);
 
         final JTextPane dafnyOutputPane = new JTextPane();
+
+        final JTabbedPane tabs = new JTabbedPane();
+        tabs.add("verification", new JScrollPane(new JTable(verificationModel)));
+        tabs.add("output", new JScrollPane(dafnyOutputPane));
+
         jFrame.getContentPane().add(buttonPane, BorderLayout.NORTH);
-        jFrame.getContentPane().add(new JScrollPane(dafnyOutputPane), BorderLayout.CENTER);
+        jFrame.getContentPane().add(tabs, BorderLayout.CENTER);
         jFrame.getContentPane().add(settingsPane, BorderLayout.SOUTH);
         jFrame.setSize(screenSize.width, 400);
         jFrame.setVisible(true);

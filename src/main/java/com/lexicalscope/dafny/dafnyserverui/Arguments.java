@@ -1,4 +1,4 @@
-package com.lexicalscope.dafny.dafnyservergui;
+package com.lexicalscope.dafny.dafnyserverui;
 
 import com.lexicalscope.jewel.cli.Option;
 

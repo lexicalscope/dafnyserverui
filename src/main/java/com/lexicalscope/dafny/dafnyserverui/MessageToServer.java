@@ -1,4 +1,4 @@
-package com.lexicalscope.dafny.dafnyservergui;
+package com.lexicalscope.dafny.dafnyserverui;
 
 public class MessageToServer {
     public String[] args;

@@ -1,4 +1,4 @@
-package com.lexicalscope.dafny.dafnyservergui;
+package com.lexicalscope.dafny.dafnyserverui;
 
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -15,7 +15,7 @@ public class BufferedServerOutputParser implements Runnable {
             final String filename) {
         this.serverOutputBuffer = serverOutputBuffer;
         this.parser = new ServerOutputParser(filename);
-        parser.add(new ServerEventBroadcaster(this::fire));
+        parser.add(new ServerEventBroadcaster("BufferedServerOutputParser", this::fire));
     }
 
     @Override public void run() {
@@ -32,8 +32,8 @@ public class BufferedServerOutputParser implements Runnable {
         serverEventListeners.add(serverEventListener);
     }
 
-    private void fire(final Consumer<ServerEventListener> l) {
-        serverEventListeners.forEach(l);
+    private void fire(final Consumer<ServerEventListener> serverEvent) {
+        serverEventListeners.forEach(serverEvent);
     }
 
     public static BufferedServerOutputParser createServerOutputParser(final BlockingQueue<String> serverOutputBuffer, final String filename) {

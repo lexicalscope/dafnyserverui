@@ -1,4 +1,4 @@
-package com.lexicalscope.dafny.dafnyservergui;
+package com.lexicalscope.dafny.dafnyserverui;
 
 import static java.lang.Integer.parseInt;
 
@@ -39,10 +39,6 @@ public class ServerOutputParser implements ServerOutputListener {
         }
     }
 
-    private Consumer<ServerEventListener> parseCachedLine(final String line) {
-        return parseProcedureIdentity(line, (l,id) -> l.cached(id.verificationType, id.module, id.procedure));
-    }
-
     private final Pattern verifiedLinePattern = Pattern.compile("\\[(\\d+) proof obligations\\]");
     private Consumer<ServerEventListener> parseVerifiedLine(final String line) {
         final Matcher matcher = verifiedLinePattern.matcher(line);
@@ -53,17 +49,20 @@ public class ServerOutputParser implements ServerOutputListener {
         return l -> {};
     }
 
+    private Consumer<ServerEventListener> parseCachedLine(final String line) {
+        return parseProcedureIdentity(line, (l,id) -> l.cached(id.verificationType, id.module, id.procedure));
+    }
+
     private Consumer<ServerEventListener> parseVerifyingLine(final String line) {
         return parseProcedureIdentity(line, (l,id) -> l.verifying(id.verificationType, id.module, id.procedure));
     }
 
     private final class ProcedureId {VerificationType verificationType; String module; String procedure;}
     private final Pattern verifyingLinePattern = Pattern.compile("(.+?)\\$\\$_module.__([^\\.]+).(.+?) ?\\.{3}");
-    private Consumer<ServerEventListener> parseProcedureIdentity(final String line, final BiConsumer<ServerEventListener, ProcedureId> listener) {
-        final ProcedureId procedureId = new ProcedureId();
-
+    private  Consumer<ServerEventListener> parseProcedureIdentity(final String line, final BiConsumer<ServerEventListener, ProcedureId> listener) {
         final Matcher matcher = verifyingLinePattern.matcher(line);
         if(matcher.matches()) {
+            final ProcedureId procedureId = new ProcedureId();
             final String verificationTypeString = matcher.group(1);
             procedureId.module = matcher.group(2);
             procedureId.procedure = matcher.group(3);

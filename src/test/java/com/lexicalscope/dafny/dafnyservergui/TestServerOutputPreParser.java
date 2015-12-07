@@ -9,6 +9,12 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import com.lexicalscope.dafny.dafnyserverui.ServerEventListener;
+import com.lexicalscope.dafny.dafnyserverui.ServerOutputParser;
+import com.lexicalscope.dafny.dafnyserverui.TimingBookend;
+import com.lexicalscope.dafny.dafnyserverui.TimingEvent;
+import com.lexicalscope.dafny.dafnyserverui.VerificationType;
+
 public class TestServerOutputPreParser {
     private final String exampleFilename = "C:\\Users\\flami_000\\Documents\\BoundedProofs\\Arithmetic.dfy";
     private final String[] exampleSuccesful = new String []{

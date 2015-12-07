@@ -1,4 +1,4 @@
-package com.lexicalscope.dafny.dafnyservergui;
+package com.lexicalscope.dafny.dafnyserverui;
 
 import java.awt.HeadlessException;
 import java.io.IOException;
@@ -11,6 +11,8 @@ import java.util.function.Consumer;
 
 import javax.swing.SwingUtilities;
 
+import com.lexicalscope.dafny.dafnyservergui.gui.DafnyServerFrame;
+import com.lexicalscope.dafny.dafnyservergui.gui.VerificationModel;
 import com.lexicalscope.jewel.cli.CliFactory;
 
 public class DafnyInteractive
@@ -45,7 +47,7 @@ public class DafnyInteractive
         server.addOutputListener(logToQueue(serverOutputBuffer));
 
         final BufferedServerOutputParser parser = BufferedServerOutputParser.createServerOutputParser(serverOutputBuffer, arguments.file());
-        parser.addEventListener(new ServerEventBroadcaster(forwardServerEventsOnEdt(verificationModel)));
+        parser.addEventListener(new ServerEventBroadcaster("EdtForward", edtForward(verificationModel)));
 
         DafnyServerFrame.show(server, arguments, verificationModel);
 
@@ -53,8 +55,9 @@ public class DafnyInteractive
         threadPool.submit(server);
     }
 
-    private static Consumer<Consumer<ServerEventListener>> forwardServerEventsOnEdt(final ServerEventListener l) {
-        return forwarder -> SwingUtilities.invokeLater(() -> forwarder.accept(l));
+    private static Consumer<Consumer<ServerEventListener>> edtForward(final ServerEventListener verificationModel)
+    {
+        return eventToPropogate -> SwingUtilities.invokeLater(() -> eventToPropogate.accept(verificationModel));
     }
 
     private static ServerOutputListener logToQueue(final BlockingQueue<String> queue) {
