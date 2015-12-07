@@ -36,7 +36,7 @@ public class VerificationModel extends AbstractTableModel implements ServerEvent
         case 0:
             return status.procedureName();
         case 1:
-            return status.timeHunderedNanoseconds();
+            return new ElapsedHunderedNanoseconds(status.timeHunderedNanoseconds());
         case 2:
             return status.message();
         default:
