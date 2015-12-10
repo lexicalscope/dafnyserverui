@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Component;
 
 import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
@@ -13,8 +14,11 @@ public class VerificationTable extends JTable {
     public VerificationTable(final VerificationModel verificationModel) {
         super(verificationModel);
 
+        setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        setColumnSelectionAllowed(false);
+        setRowSelectionAllowed(true);
 
-        final int[] widths = new int[]{180,85};
+        final int[] widths = new int[]{15,180,85};
         for (int i = 0; i < widths.length; i++) {
             final TableColumn column = getColumnModel().getColumn(i);
             column.setMinWidth(widths[i]);
@@ -22,6 +26,7 @@ public class VerificationTable extends JTable {
             column.setPreferredWidth(widths[i]);
         }
     }
+
 
     @Override public Component prepareRenderer(final TableCellRenderer renderer, final int row, final int column) {
         final Component c = super.prepareRenderer(renderer, row, column);
@@ -49,7 +54,10 @@ public class VerificationTable extends JTable {
             break;
         }
 
+        if ((isCellSelected(row, column))) {
+            c.setBackground(getSelectionBackground());
+        }
+
         return c;
     }
-
 }

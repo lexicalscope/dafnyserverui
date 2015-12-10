@@ -3,10 +3,12 @@ package com.lexicalscope.dafny.dafnyservergui.gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.HeadlessException;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,10 +64,13 @@ public class DafnyServerFrame {
         final JTextField fileField = new JTextField(40);
         fileField.setText(arguments.file());
 
-        final JPanel buttonPane = new JPanel(new GridBagLayout());
-        buttonPane.add(new JButton(new AbstractAction() {
+        final JButton verify = new JButton(new AbstractAction() {
+            private static final long serialVersionUID = -5699009837617872554L;
             {
-                putValue(Action.NAME, "Verify!");
+                putValue(Action.NAME, "Go!");
+                putValue(Action.MNEMONIC_KEY, KeyEvent.VK_G);
+                putValue(Action.DISPLAYED_MNEMONIC_INDEX_KEY, 0);
+                putValue(Action.SHORT_DESCRIPTION, "Verify Now");
             }
             @Override public void actionPerformed(final ActionEvent e) {
                 final MessageToServer messageToServer = new MessageToServer();
@@ -81,21 +86,28 @@ public class DafnyServerFrame {
                 messageToServer.args = args.toArray(new String[args.size()]);
                 server.sendMessage(messageToServer);
             }
-        }));
+        });
 
+        final GridBagConstraints c = new GridBagConstraints();
         final JPanel settingsPane = new JPanel(new GridBagLayout());
         settingsPane.add(fileField);
         settingsPane.add(traceTimesBox);
         settingsPane.add(timeoutField);
         settingsPane.add(timeoutLabel);
+        c.weightx = 1.0;
+        c.anchor = GridBagConstraints.EAST;
+        settingsPane.add(verify, c);
 
         final JTextPane dafnyOutputPane = new JTextPane();
 
         final JTabbedPane tabs = new JTabbedPane();
-        tabs.add("verification", new JScrollPane(new VerificationTable(verificationModel)));
+        tabs.add("results", new JScrollPane(new VerificationTable(verificationModel)));
+        tabs.setMnemonicAt(0, KeyEvent.VK_R);
+        tabs.setDisplayedMnemonicIndexAt(0, 0);
         tabs.add("output", new JScrollPane(dafnyOutputPane));
+        tabs.setMnemonicAt(1, KeyEvent.VK_O);
+        tabs.setDisplayedMnemonicIndexAt(1, 0);
 
-        jFrame.getContentPane().add(buttonPane, BorderLayout.NORTH);
         jFrame.getContentPane().add(tabs, BorderLayout.CENTER);
         jFrame.getContentPane().add(settingsPane, BorderLayout.SOUTH);
         jFrame.setSize(screenSize.width, 400);

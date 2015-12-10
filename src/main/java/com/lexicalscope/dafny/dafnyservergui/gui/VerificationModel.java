@@ -27,16 +27,18 @@ public class VerificationModel extends AbstractTableModel implements ServerEvent
     }
 
     @Override public int getColumnCount() {
-        return 3;
+        return 4;
     }
 
     @Override public String getColumnName(final int columnIndex) {
         switch (columnIndex) {
         case 0:
-            return "Name";
+            return "";
         case 1:
-            return "Seconds";
+            return "Name";
         case 2:
+            return "Seconds";
+        case 3:
             return "Message";
         default:
             return null;
@@ -47,10 +49,29 @@ public class VerificationModel extends AbstractTableModel implements ServerEvent
         final VerificationStatus status = rows.get(rowIndex);
         switch (columnIndex) {
         case 0:
-            return status.procedureName();
+            return new Object(){ @Override
+                public String toString() {
+                    final Verified verified = status.verified();
+                    switch (verified) {
+                        case Failure:
+                            return "F";
+                        case ServerError:
+                            return "E";
+                        case Successful:
+                            return "S";
+                        case Unknown:
+                            return "U";
+                        case WellFormed:
+                            return "W";
+                    }
+                    return "";
+                };
+            };
         case 1:
-            return new ElapsedHunderedNanoseconds(status.timeHunderedNanoseconds());
+            return status.procedureName();
         case 2:
+            return new ElapsedHunderedNanoseconds(status.timeHunderedNanoseconds());
+        case 3:
             return status.message();
         default:
             return null;
