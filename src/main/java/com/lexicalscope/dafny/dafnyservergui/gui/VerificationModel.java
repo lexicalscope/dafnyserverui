@@ -30,6 +30,19 @@ public class VerificationModel extends AbstractTableModel implements ServerEvent
         return 3;
     }
 
+    @Override public String getColumnName(final int columnIndex) {
+        switch (columnIndex) {
+        case 0:
+            return "Name";
+        case 1:
+            return "Seconds";
+        case 2:
+            return "Message";
+        default:
+            return null;
+        }
+    }
+
     @Override public Object getValueAt(final int rowIndex, final int columnIndex) {
         final VerificationStatus status = rows.get(rowIndex);
         switch (columnIndex) {
