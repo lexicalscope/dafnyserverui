@@ -43,7 +43,67 @@ import com.lexicalscope.dafny.dafnyserverui.Arguments;
 import com.lexicalscope.dafny.dafnyserverui.DafnyServer;
 import com.lexicalscope.dafny.dafnyserverui.MessageToServer;
 
-public class DafnyServerFrame {
+public class DafnyServerFrame extends JFrame {
+    private final class SaveWindowStateListener extends WindowAdapter {
+        private final Preferences prefs;
+
+        private SaveWindowStateListener(final Preferences prefs) {
+            this.prefs = prefs;
+        }
+
+        @Override public void windowClosing(final WindowEvent e) {
+            prefs.putInt(WIDTH_KEY, getWidth());
+            prefs.putInt(HEIGHT_KEY, getHeight());
+            prefs.putInt(EXTENDED_STATE_KEY, getExtendedState());
+            prefs.putInt(X_KEY, getX());
+            prefs.putInt(Y_KEY, getY());
+            try {
+                prefs.flush();
+            } catch (final BackingStoreException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    private static final class SendVerifyMessageAction extends AbstractAction {
+        private final JTextField fileField;
+        private final DafnyServer server;
+        private final JTextField timeoutField;
+        private final JCheckBox traceTimesBox;
+        private static final long serialVersionUID = -5699009837617872554L;
+
+        {
+            putValue(Action.NAME, "Verify!");
+            putValue(Action.MNEMONIC_KEY, KeyEvent.VK_V);
+            putValue(Action.DISPLAYED_MNEMONIC_INDEX_KEY, 0);
+            putValue(Action.SHORT_DESCRIPTION, "Verify Now");
+        }
+
+        private SendVerifyMessageAction(final JTextField fileField, final DafnyServer server, final JTextField timeoutField,
+                final JCheckBox traceTimesBox) {
+            this.fileField = fileField;
+            this.server = server;
+            this.timeoutField = timeoutField;
+            this.traceTimesBox = traceTimesBox;
+        }
+
+        @Override public void actionPerformed(final ActionEvent e) {
+            final MessageToServer messageToServer = new MessageToServer();
+            messageToServer.source = fileField.getText();
+            messageToServer.filename = fileField.getText();
+            messageToServer.sourceIsFile = true;
+            final List<String> args = new ArrayList<>();
+            if(traceTimesBox.isSelected()) {
+                args.add("/traceTimes");
+            }
+            args.add("/timeLimit:" + timeoutField.getText());
+
+            messageToServer.args = args.toArray(new String[args.size()]);
+            server.sendMessage(messageToServer);
+        }
+    }
+
+    private static final long serialVersionUID = 6704789357703188474L;
     private static final String Y_KEY = "y";
     private static final String X_KEY = "x";
     private static final String EXTENDED_STATE_KEY = "extendedState";
@@ -51,21 +111,11 @@ public class DafnyServerFrame {
     private static final String WIDTH_KEY = "width";
     private final JTextPane dafnyOutputPane;
 
-    public DafnyServerFrame(final JTextPane dafnyOutputPane) {
-        this.dafnyOutputPane = dafnyOutputPane;
-    }
-
-    public static void show(final DafnyServer server, final Arguments arguments, final VerificationModel verificationModel) throws HeadlessException, InvocationTargetException, InterruptedException {
-        SwingUtilities.invokeAndWait(() -> {
-            constructAndShowUi(server, arguments, verificationModel);
-        });
-    }
-
-    static void constructAndShowUi(final DafnyServer server, final Arguments arguments, final VerificationModel verificationModel) {
+    public DafnyServerFrame(final DafnyServer server, final Arguments arguments, final VerificationModel verificationModel) {
+        super("Dafny");
         final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        final JFrame jFrame = new JFrame("Dafny");
-        jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        jFrame.setLayout(new BorderLayout());
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setLayout(new BorderLayout());
 
         final JCheckBox traceTimesBox = new JCheckBox();
         traceTimesBox.setSelected(true);
@@ -78,29 +128,7 @@ public class DafnyServerFrame {
         final JTextField fileField = new JTextField(40);
         fileField.setText(arguments.file());
 
-        final JButton verify = new JButton(new AbstractAction() {
-            private static final long serialVersionUID = -5699009837617872554L;
-            {
-                putValue(Action.NAME, "Verify!");
-                putValue(Action.MNEMONIC_KEY, KeyEvent.VK_V);
-                putValue(Action.DISPLAYED_MNEMONIC_INDEX_KEY, 0);
-                putValue(Action.SHORT_DESCRIPTION, "Verify Now");
-            }
-            @Override public void actionPerformed(final ActionEvent e) {
-                final MessageToServer messageToServer = new MessageToServer();
-                messageToServer.source = fileField.getText();
-                messageToServer.filename = fileField.getText();
-                messageToServer.sourceIsFile = true;
-                final List<String> args = new ArrayList<>();
-                if(traceTimesBox.isSelected()) {
-                    args.add("/traceTimes");
-                }
-                args.add("/timeLimit:" + timeoutField.getText());
-
-                messageToServer.args = args.toArray(new String[args.size()]);
-                server.sendMessage(messageToServer);
-            }
-        });
+        final JButton verify = new JButton(new SendVerifyMessageAction(fileField, server, timeoutField, traceTimesBox));
 
         final GridBagConstraints c = new GridBagConstraints();
         final JPanel settingsPane = new JPanel(new GridBagLayout());
@@ -112,7 +140,7 @@ public class DafnyServerFrame {
         c.anchor = GridBagConstraints.EAST;
         settingsPane.add(verify, c);
 
-        final JTextPane dafnyOutputPane = new JTextPane();
+        dafnyOutputPane = new JTextPane();
         final NavigableHtmlPane errorTracePane = new NavigableHtmlPane();
 
         final VerificationTable verificationTable = new VerificationTable(verificationModel);
@@ -130,7 +158,6 @@ public class DafnyServerFrame {
         });
 
         errorTracePane.addHyperlinkListener(e -> {
-            System.out.println(e);
             if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
                 if (e.getURL() != null) {
                     System.out.println(e.getURL());
@@ -146,31 +173,22 @@ public class DafnyServerFrame {
         tabs.setMnemonicAt(1, KeyEvent.VK_O);
         tabs.setDisplayedMnemonicIndexAt(1, 0);
 
-        jFrame.getContentPane().add(tabs, BorderLayout.CENTER);
-        jFrame.getContentPane().add(settingsPane, BorderLayout.SOUTH);
+        this.getContentPane().add(tabs, BorderLayout.CENTER);
+        this.getContentPane().add(settingsPane, BorderLayout.SOUTH);
 
-        final DafnyServerFrame dafnyServerFrame = new DafnyServerFrame(dafnyOutputPane);
-        server.addOutputListener(line -> {SwingUtilities.invokeLater(() -> dafnyServerFrame.moreOutput(line));});
+        server.addOutputListener(line -> {SwingUtilities.invokeLater(() -> this.moreOutput(line));});
 
         final Preferences prefs = Preferences.userNodeForPackage(DafnyServerFrame.class);
-        jFrame.addWindowListener(new WindowAdapter() {
-            @Override public void windowClosing(final WindowEvent e) {
-                prefs.putInt(WIDTH_KEY, jFrame.getWidth());
-                prefs.putInt(HEIGHT_KEY, jFrame.getHeight());
-                prefs.putInt(EXTENDED_STATE_KEY, jFrame.getExtendedState());
-                prefs.putInt(X_KEY, jFrame.getX());
-                prefs.putInt(Y_KEY, jFrame.getY());
-                try {
-                    prefs.flush();
-                } catch (final BackingStoreException ex) {
-                    ex.printStackTrace();
-                }
-            }
+        this.addWindowListener(new SaveWindowStateListener(prefs));
+        this.setSize(prefs.getInt(WIDTH_KEY, screenSize.width), prefs.getInt(HEIGHT_KEY, min(400, screenSize.height)));
+        this.setLocation(prefs.getInt(X_KEY, 0), prefs.getInt(Y_KEY, 0));
+        this.setExtendedState(prefs.getInt(EXTENDED_STATE_KEY, Frame.NORMAL));
+    }
+
+    public static void show(final DafnyServer server, final Arguments arguments, final VerificationModel verificationModel) throws HeadlessException, InvocationTargetException, InterruptedException {
+        SwingUtilities.invokeAndWait(() -> {
+            new DafnyServerFrame(server, arguments, verificationModel).setVisible(true);
         });
-        jFrame.setSize(prefs.getInt(WIDTH_KEY, screenSize.width), prefs.getInt(HEIGHT_KEY, min(400, screenSize.height)));
-        jFrame.setLocation(prefs.getInt(X_KEY, 0), prefs.getInt(Y_KEY, 0));
-        jFrame.setExtendedState(prefs.getInt(EXTENDED_STATE_KEY, Frame.NORMAL));
-        jFrame.setVisible(true);
     }
 
     public void moreOutput(final String line)

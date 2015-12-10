@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.swing.table.AbstractTableModel;
 
@@ -204,5 +205,27 @@ public class VerificationModel extends AbstractTableModel implements ServerEvent
 
     public String getTrace(final int index) {
         return getStatus(index).trace();
+    }
+
+    public void getNextFailure(final int afterRow, final Consumer<Integer> cont) {
+        final int startAt = (Math.max(afterRow+1,0) % rows.size());
+
+        for (int i = startAt; i != afterRow; i=(i+1) % rows.size()) {
+            if(rows.get(i).isFailure()) {
+                cont.accept(i);
+                break;
+            }
+        }
+    }
+
+    public void getPreviousFailure(final int beforeRow, final Consumer<Integer> cont) {
+        final int startAt = (Math.max(beforeRow-1,0) % rows.size());
+
+        for (int i = startAt; i != beforeRow; i=(i+(rows.size()-1)) % rows.size()) {
+            if(rows.get(i).isFailure()) {
+                cont.accept(i);
+                break;
+            }
+        }
     }
 }

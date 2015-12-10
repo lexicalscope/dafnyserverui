@@ -9,7 +9,6 @@ import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.KeyStroke;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 
@@ -22,16 +21,9 @@ public final class NavigableHtmlPane extends JEditorPane {
         setContentType("text/html");
 
         final InputMap inputMap = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-
-        final KeyStroke nextKey = KeyStroke.getKeyStroke(KeyEvent.VK_PERIOD, InputEvent.CTRL_MASK);
-        final KeyStroke prevKey = KeyStroke.getKeyStroke(KeyEvent.VK_COMMA, InputEvent.CTRL_MASK);
-        final KeyStroke goKey = KeyStroke.getKeyStroke(KeyEvent.VK_G, InputEvent.CTRL_MASK);
-
-        System.out.println(getActionMap().get("activate-link-action"));
-
-        inputMap.put(nextKey, "next-link-action");
-        inputMap.put(prevKey, "previous-link-action");
-        inputMap.put(goKey, "activate-link-action");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PERIOD, InputEvent.CTRL_MASK), "next-link-action");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_COMMA, InputEvent.CTRL_MASK), "previous-link-action");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_G, InputEvent.CTRL_MASK), "activate-link-action");
     }
 
     public void replaceHtml(final String html) {
@@ -45,7 +37,5 @@ public final class NavigableHtmlPane extends JEditorPane {
             throw new RuntimeException(e);
         }
         setCaretPosition(0);
-
-        System.out.println("page: " + doc.getProperty(Document.StreamDescriptionProperty));
     }
 }
