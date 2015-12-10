@@ -3,6 +3,9 @@ package com.lexicalscope.dafny.dafnyserverui;
 import java.awt.HeadlessException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -20,6 +23,24 @@ public class DafnyInteractive
     public static void main(final String[] args) throws IOException, InterruptedException, HeadlessException, InvocationTargetException
     {
         final Arguments arguments = CliFactory.parseArguments(Arguments.class, args);
+
+        URL.setURLStreamHandlerFactory(protocol ->
+        {
+            if("fileloc".equals(protocol)) {
+                return new URLStreamHandler() {
+                    @Override
+                    protected URLConnection openConnection(final URL url) throws IOException {
+                        return new URLConnection(url) {
+                            @Override
+                            public void connect() throws IOException {
+                                // no way to connect to this
+                            }
+                        };
+                    }};
+            } else {
+                return null;
+            }
+          });
 
         final ProcessBuilder pb = new ProcessBuilder(arguments.server());
         pb.redirectErrorStream(true);

@@ -33,6 +33,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
+import javax.swing.event.HyperlinkEvent;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -80,8 +81,8 @@ public class DafnyServerFrame {
         final JButton verify = new JButton(new AbstractAction() {
             private static final long serialVersionUID = -5699009837617872554L;
             {
-                putValue(Action.NAME, "Go!");
-                putValue(Action.MNEMONIC_KEY, KeyEvent.VK_G);
+                putValue(Action.NAME, "Verify!");
+                putValue(Action.MNEMONIC_KEY, KeyEvent.VK_V);
                 putValue(Action.DISPLAYED_MNEMONIC_INDEX_KEY, 0);
                 putValue(Action.SHORT_DESCRIPTION, "Verify Now");
             }
@@ -112,7 +113,7 @@ public class DafnyServerFrame {
         settingsPane.add(verify, c);
 
         final JTextPane dafnyOutputPane = new JTextPane();
-        final JTextPane errorTracePane = new JTextPane();
+        final NavigableHtmlPane errorTracePane = new NavigableHtmlPane();
 
         final VerificationTable verificationTable = new VerificationTable(verificationModel);
         final JScrollPane verificationResults = new JScrollPane(verificationTable);
@@ -122,9 +123,19 @@ public class DafnyServerFrame {
 
         verificationTable.getSelectionModel().addListSelectionListener(e -> {
             final int selectedRow = verificationTable.getSelectedRow();
-            final int modelRow = verificationTable.convertRowIndexToModel(selectedRow);
-            final String trace = verificationModel.getTrace(modelRow);
-            errorTracePane.setText(trace);
+            if (selectedRow >= 0) {
+                final int modelRow = verificationTable.convertRowIndexToModel(selectedRow);
+                errorTracePane.replaceHtml(verificationModel.getTrace(modelRow));
+            }
+        });
+
+        errorTracePane.addHyperlinkListener(e -> {
+            System.out.println(e);
+            if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+                if (e.getURL() != null) {
+                    System.out.println(e.getURL());
+                }
+            }
         });
 
         final JTabbedPane tabs = new JTabbedPane();

@@ -335,6 +335,6 @@ public class VerificationStatus {
     }
 
     public void log(final String filename, final int lineNumber, final int columnNumber, final String level, final String message) {
-        trace.append(String.format("%s(%d,%d): %s: %s", filename, lineNumber, columnNumber, level, message));
+        trace.append(String.format("<a href=\"fileloc:///%s(%d,%d)\">%1$s(%2$d,%3$d)</a>: %s: %s", filename, lineNumber, columnNumber, level, message));
     }
 }
