@@ -17,6 +17,8 @@ import java.awt.event.WindowEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -110,6 +112,7 @@ public class DafnyServerFrame extends JFrame {
     private static final String HEIGHT_KEY = "height";
     private static final String WIDTH_KEY = "width";
     private final JTextPane dafnyOutputPane;
+    private final List<ErrorListener> errorListeners = new CopyOnWriteArrayList<>();
 
     public DafnyServerFrame(final DafnyServer server, final Arguments arguments, final VerificationModel verificationModel) {
         super("Dafny");
@@ -160,7 +163,14 @@ public class DafnyServerFrame extends JFrame {
         errorTracePane.addHyperlinkListener(e -> {
             if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
                 if (e.getURL() != null) {
-                    System.out.println(e.getURL());
+                    final String path = e.getURL().getPath();
+                    final int locationLocation = path.lastIndexOf("(");
+                    final String file = path.substring(1, locationLocation);
+                    final String location = path.substring(locationLocation+1,path.length()-1);
+                    final String[] lineColumn = location.split(",");
+                    final String column = lineColumn[1];
+                    final String line = lineColumn[0];
+                    fireError(l -> l.errorAt(file, line, column));
                 }
             }
         });
@@ -185,10 +195,17 @@ public class DafnyServerFrame extends JFrame {
         this.setExtendedState(prefs.getInt(EXTENDED_STATE_KEY, Frame.NORMAL));
     }
 
-    public static void show(final DafnyServer server, final Arguments arguments, final VerificationModel verificationModel) throws HeadlessException, InvocationTargetException, InterruptedException {
+    private void fireError(final Consumer<ErrorListener> event) {
+        errorListeners.forEach(event);
+    }
+
+    public static DafnyServerFrame show(final DafnyServer server, final Arguments arguments, final VerificationModel verificationModel) throws HeadlessException, InvocationTargetException, InterruptedException {
+        final DafnyServerFrame[] frame = new DafnyServerFrame[1];
         SwingUtilities.invokeAndWait(() -> {
-            new DafnyServerFrame(server, arguments, verificationModel).setVisible(true);
+            frame[0] = new DafnyServerFrame(server, arguments, verificationModel);
+            frame[0].setVisible(true);
         });
+        return frame[0];
     }
 
     public void moreOutput(final String line)
@@ -206,5 +223,9 @@ public class DafnyServerFrame extends JFrame {
         } catch (final BadLocationException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void addErrorListener(final ErrorListener listener) {
+        errorListeners.add(listener);
     }
 }

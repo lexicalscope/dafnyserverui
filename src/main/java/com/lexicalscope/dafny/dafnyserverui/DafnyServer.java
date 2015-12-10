@@ -52,7 +52,6 @@ public class DafnyServer implements Runnable {
         try {
             messageBytes = messageToServer(message);
             synchronized (outputLock) {
-                System.out.println(new String(messageBytes, "US-ASCII"));
                 outputStream.write(messageBytes);
                 outputStream.flush();
             }

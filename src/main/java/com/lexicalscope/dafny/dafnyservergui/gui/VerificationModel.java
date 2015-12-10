@@ -208,9 +208,12 @@ public class VerificationModel extends AbstractTableModel implements ServerEvent
     }
 
     public void getNextFailure(final int afterRow, final Consumer<Integer> cont) {
+        if (rows.isEmpty()) {
+            return;
+        }
         final int startAt = (Math.max(afterRow+1,0) % rows.size());
 
-        for (int i = startAt; i != afterRow; i=(i+1) % rows.size()) {
+        for (int i = startAt; i != (startAt+rows.size()-1) % rows.size(); i=(i+1) % rows.size()) {
             if(rows.get(i).isFailure()) {
                 cont.accept(i);
                 break;
@@ -219,9 +222,12 @@ public class VerificationModel extends AbstractTableModel implements ServerEvent
     }
 
     public void getPreviousFailure(final int beforeRow, final Consumer<Integer> cont) {
+        if (rows.isEmpty()) {
+            return;
+        }
         final int startAt = (Math.max(beforeRow-1,0) % rows.size());
 
-        for (int i = startAt; i != beforeRow; i=(i+(rows.size()-1)) % rows.size()) {
+        for (int i = startAt; i != (startAt+1) % rows.size(); i=(i+(rows.size()-1)) % rows.size()) {
             if(rows.get(i).isFailure()) {
                 cont.accept(i);
                 break;
