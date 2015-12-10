@@ -111,6 +111,14 @@ public class VerificationModel extends AbstractTableModel implements ServerEvent
         fireTableRowsUpdated(currentIndex, currentIndex);
     }
 
+    @Override public void log(final String filename, final int lineNumber, final int columnNumber, final String level, final String message) {
+        // todo - what are these log lines that come before the first row?
+        if(currentRow != null)
+        {
+            currentRow.log(filename, lineNumber, columnNumber, level, message);
+        }
+    }
+
     long timeHunderedNanoseconds() {
         final long result = timingState.timeHunderedNanoseconds();
         timingState = new InitialTimingState();
@@ -192,5 +200,9 @@ public class VerificationModel extends AbstractTableModel implements ServerEvent
 
     public VerificationStatus getStatus(final int index) {
         return rows.get(index);
+    }
+
+    public String getTrace(final int index) {
+        return getStatus(index).trace();
     }
 }

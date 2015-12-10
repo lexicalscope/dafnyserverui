@@ -112,12 +112,23 @@ public class DafnyServerFrame {
         settingsPane.add(verify, c);
 
         final JTextPane dafnyOutputPane = new JTextPane();
-        final JScrollPane verificationResults = new JScrollPane(new VerificationTable(verificationModel));
-        final JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        splitPane.setTopComponent(verificationResults);
+        final JTextPane errorTracePane = new JTextPane();
+
+        final VerificationTable verificationTable = new VerificationTable(verificationModel);
+        final JScrollPane verificationResults = new JScrollPane(verificationTable);
+        final JSplitPane resultsAndTrace = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        resultsAndTrace.setTopComponent(verificationResults);
+        resultsAndTrace.setBottomComponent(errorTracePane);
+
+        verificationTable.getSelectionModel().addListSelectionListener(e -> {
+            final int selectedRow = verificationTable.getSelectedRow();
+            final int modelRow = verificationTable.convertRowIndexToModel(selectedRow);
+            final String trace = verificationModel.getTrace(modelRow);
+            errorTracePane.setText(trace);
+        });
 
         final JTabbedPane tabs = new JTabbedPane();
-        tabs.add("results", verificationResults);
+        tabs.add("results", resultsAndTrace);
         tabs.setMnemonicAt(0, KeyEvent.VK_R);
         tabs.setDisplayedMnemonicIndexAt(0, 0);
         tabs.add("output", new JScrollPane(dafnyOutputPane));

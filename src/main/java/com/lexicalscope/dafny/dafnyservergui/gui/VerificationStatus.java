@@ -281,6 +281,7 @@ public class VerificationStatus {
     private final String procedure;
 
     private VerificationState state = new InitialState();
+    private final StringBuilder trace = new StringBuilder();
 
     public VerificationStatus(final String module, final String procedure) {
         this.module = module;
@@ -325,7 +326,15 @@ public class VerificationStatus {
         return state.message();
     }
 
+    public String trace() {
+        return trace.toString();
+    }
+
     public long timeHunderedNanoseconds() {
         return state.timeHunderedNanoseconds();
+    }
+
+    public void log(final String filename, final int lineNumber, final int columnNumber, final String level, final String message) {
+        trace.append(String.format("%s(%d,%d): %s: %s", filename, lineNumber, columnNumber, level, message));
     }
 }
