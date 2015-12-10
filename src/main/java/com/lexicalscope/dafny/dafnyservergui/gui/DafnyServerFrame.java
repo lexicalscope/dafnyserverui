@@ -1,17 +1,24 @@
 package com.lexicalscope.dafny.dafnyservergui.gui;
 
+import static java.lang.Math.min;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.HeadlessException;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -21,6 +28,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
@@ -35,6 +43,11 @@ import com.lexicalscope.dafny.dafnyserverui.DafnyServer;
 import com.lexicalscope.dafny.dafnyserverui.MessageToServer;
 
 public class DafnyServerFrame {
+    private static final String Y_KEY = "y";
+    private static final String X_KEY = "x";
+    private static final String EXTENDED_STATE_KEY = "extendedState";
+    private static final String HEIGHT_KEY = "height";
+    private static final String WIDTH_KEY = "width";
     private final JTextPane dafnyOutputPane;
 
     public DafnyServerFrame(final JTextPane dafnyOutputPane) {
@@ -99,9 +112,12 @@ public class DafnyServerFrame {
         settingsPane.add(verify, c);
 
         final JTextPane dafnyOutputPane = new JTextPane();
+        final JScrollPane verificationResults = new JScrollPane(new VerificationTable(verificationModel));
+        final JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        splitPane.setTopComponent(verificationResults);
 
         final JTabbedPane tabs = new JTabbedPane();
-        tabs.add("results", new JScrollPane(new VerificationTable(verificationModel)));
+        tabs.add("results", verificationResults);
         tabs.setMnemonicAt(0, KeyEvent.VK_R);
         tabs.setDisplayedMnemonicIndexAt(0, 0);
         tabs.add("output", new JScrollPane(dafnyOutputPane));
@@ -110,12 +126,29 @@ public class DafnyServerFrame {
 
         jFrame.getContentPane().add(tabs, BorderLayout.CENTER);
         jFrame.getContentPane().add(settingsPane, BorderLayout.SOUTH);
-        jFrame.setSize(screenSize.width, 400);
-        jFrame.setVisible(true);
 
         final DafnyServerFrame dafnyServerFrame = new DafnyServerFrame(dafnyOutputPane);
-
         server.addOutputListener(line -> {SwingUtilities.invokeLater(() -> dafnyServerFrame.moreOutput(line));});
+
+        final Preferences prefs = Preferences.userNodeForPackage(DafnyServerFrame.class);
+        jFrame.addWindowListener(new WindowAdapter() {
+            @Override public void windowClosing(final WindowEvent e) {
+                prefs.putInt(WIDTH_KEY, jFrame.getWidth());
+                prefs.putInt(HEIGHT_KEY, jFrame.getHeight());
+                prefs.putInt(EXTENDED_STATE_KEY, jFrame.getExtendedState());
+                prefs.putInt(X_KEY, jFrame.getX());
+                prefs.putInt(Y_KEY, jFrame.getY());
+                try {
+                    prefs.flush();
+                } catch (final BackingStoreException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+        jFrame.setSize(prefs.getInt(WIDTH_KEY, screenSize.width), prefs.getInt(HEIGHT_KEY, min(400, screenSize.height)));
+        jFrame.setLocation(prefs.getInt(X_KEY, 0), prefs.getInt(Y_KEY, 0));
+        jFrame.setExtendedState(prefs.getInt(EXTENDED_STATE_KEY, Frame.NORMAL));
+        jFrame.setVisible(true);
     }
 
     public void moreOutput(final String line)
