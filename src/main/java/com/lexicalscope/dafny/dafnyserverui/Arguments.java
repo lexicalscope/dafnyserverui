@@ -18,4 +18,8 @@ public interface Arguments
   boolean isJump();
   @Option(description="command to exec that will jump to a file, must work in a String.format(command, file, line, column) call")
   List<String> jump();
+
+  boolean isPop();
+  @Option(description="on jump pop the window with this name (MS Windows only)")
+  String pop();
 }

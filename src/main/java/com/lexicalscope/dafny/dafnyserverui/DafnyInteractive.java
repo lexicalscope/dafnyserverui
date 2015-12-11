@@ -115,14 +115,16 @@ public class DafnyInteractive
             } catch (final IOException | InterruptedException e) {
                 e.printStackTrace();
             }
-            stealFocus();
+            if(arguments.isPop()) {
+                stealFocus(arguments.pop());
+            }
         }
     }
 
-    private static void stealFocus() {
+    private static void stealFocus(final String name) {
         //HWND hwnd = User32.INSTANCE.FindWindow("vim", null); // window class name
         //final HWND hwnd = User32.INSTANCE.FindWindow(null, "vim74"); // window title
-        final HWND hwnd = User32.INSTANCE.FindWindow(null, "dafnyeditor"); // window title
+        final HWND hwnd = User32.INSTANCE.FindWindow(null, name); // window title
         if (hwnd == null) {
             System.out.println("can't find window to pop");
         } else {
